@@ -2,7 +2,7 @@
 
 
 
-<img src="https://github.com/huangfangjing/KLine/blob/master/show1.jpg" width="400px">   <img src="https://github.com/huangfangjing/KLine/blob/master/show2.jpg" width="400px">    
+<img src="https://github.com/huangfangjing/KLine/blob/master/show1.jpg" width="400px">      <img src="https://github.com/huangfangjing/KLine/blob/master/show2.jpg" width="400px">    
 
 
 
