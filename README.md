@@ -23,12 +23,12 @@ private val onReadyListener: IChartDataCountListener<MutableList<KLineDrawItem>>
  //根据自己需要定义回调接口
 
 //手势滑动
-  override fun onChartTranslate(me: MotionEvent?, dX: Float) {
+override fun onChartTranslate(me: MotionEvent?, dX: Float) {
         mHelper.initKLineDrawData(dX, KLineSourceHelper.SourceType.MOVE)
-    }
+        }
 
  //手势缩放   
-   override fun onChartScale(me: MotionEvent?, scaleX: Float, scaleY: Float) {
+override fun onChartScale(me: MotionEvent?, scaleX: Float, scaleY: Float) {
         KLineSourceHelper.K_D_COLUMNS = (KLineSourceHelper.K_D_COLUMNS / scaleX).toInt()
         KLineSourceHelper.K_D_COLUMNS =
             max(
@@ -39,6 +39,6 @@ private val onReadyListener: IChartDataCountListener<MutableList<KLineDrawItem>>
     }
 
 //长按
-    override fun onLongPress(drawItem: KLineDrawItem) {
+override fun onLongPress(drawItem: KLineDrawItem) {
         mBinding.kLineData = drawItem
     }
