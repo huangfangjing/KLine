@@ -1,7 +1,16 @@
 这是一款使用kotlin语言开发的股票K线走势行情图，效果如下：
-![image](https://github.com/huangfangjing/KLine/blob/master/show1.jpg)  ![image](https://github.com/huangfangjing/KLine/blob/master/show2.jpg)
+
+
+
+<img src="https://github.com/huangfangjing/KLine/blob/master/show1.jpg" width="400px">   <img src="https://github.com/huangfangjing/KLine/blob/master/show2.jpg" width="400px">    
+
+
+
 
 项目中使用到的相关技术
+
+
+
 1.自定义View（这里的方式是使用canvas绘图的方式，包含drawPath，drawRectF,drawText.drawBitmap等等）
 
 2.使用GestureDetector实现用户手势检测,项目使用到的手势分别为点击(onSingleTapUp),长按（onLongPress），滑动（onScroll），长按后滑动（MotionEvent.ACTION_MASK）
@@ -12,7 +21,9 @@
   
 4.K线数据的指标计算和绘制位置计算（这个不是项目的技术关键，虽然有些算起来头大）
 
-5.DataBinding数据绑定
+5.使用handler+Runnable进行事件分发和取消（postDelayed，removeCallbacks）
+
+6.DataBinding数据绑定
 
 部分实现代码
 
