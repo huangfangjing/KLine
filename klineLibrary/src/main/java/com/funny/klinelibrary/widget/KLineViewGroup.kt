@@ -13,6 +13,7 @@ import android.view.MotionEvent
 import android.widget.LinearLayout
 import com.funny.klinelibrary.entity.ExtremeValue
 import com.funny.klinelibrary.entity.KLineDrawItem
+import com.funny.klinelibrary.helper.KLineSourceHelper
 import com.funny.klinelibrary.inter.KlineGestureListener
 import kotlin.math.abs
 import kotlin.math.max
@@ -45,7 +46,6 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
     private val mHandler: Handler = Handler(Looper.getMainLooper())
 
     private val mRunnable = Runnable {
-        Log.e("taggg", "mRunnable")
         if (isPressState) {
             isPressState = false
             isLongPressState = false
@@ -147,7 +147,11 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
             distanceX: Float,
             distanceY: Float
         ): Boolean {
-            scrollX -= distanceX
+            val scoreRate = max(
+                1.0f,
+                KLineSourceHelper.COLUMNS_DEFAULT * 1.0f / KLineSourceHelper.K_D_COLUMNS
+            )
+            scrollX -= (distanceX * scoreRate)
             mKLineActionListener?.onChartTranslate(e2, scrollX)
             scrollX = 0f
             return true

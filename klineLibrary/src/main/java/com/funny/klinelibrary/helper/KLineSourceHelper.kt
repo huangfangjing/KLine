@@ -19,7 +19,12 @@ class KLineSourceHelper(private var mReadyListener: IChartDataCountListener<Muta
         /**
          * 一屏默认展示的蜡烛线数量
          */
-        var K_D_COLUMNS: Int = 50
+        const val COLUMNS_DEFAULT: Int = 50
+
+        /**
+         * 当前展示的蜡烛线数量
+         */
+        var K_D_COLUMNS: Int = COLUMNS_DEFAULT
 
         /**
          * 一屏最多展示的蜡烛线数量
@@ -35,6 +40,8 @@ class KLineSourceHelper(private var mReadyListener: IChartDataCountListener<Muta
          * 给极值增加一定放大倍数比例，防止绘制到最高最低点
          */
         const val EXTREME_SCALE: Float = 0.04f
+
+
     }
 
 
