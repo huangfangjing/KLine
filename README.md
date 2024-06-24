@@ -25,14 +25,20 @@
 
 6.DataBinding数据绑定
 
+7.未完，待续。后续继续增加分时图和其他指标
+
 部分实现代码
 
 //使用模拟数据（解析asset数据），数据准备完毕后回调
 
 private val onReadyListener: IChartDataCountListener<MutableList<KLineDrawItem>> =
+
         IChartDataCountListener{ data, extremeValue ->
+        
             mBinding.klineGroup.setData(data, extremeValue) //设置数据源
+            
             mBinding.klineGroup.dispatchDrawData()//分发子类分别绘制
+            
             mBinding.kLineData = data[data.size - 1]//DataBinding数据绑定
         }
 
