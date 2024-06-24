@@ -28,9 +28,12 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
 
     //绘图基本
     private lateinit var mBitmap: Bitmap
-    lateinit var mCanvas: Canvas
-    lateinit var mRectF: RectF
-    lateinit var mViewRectF: RectF
+    lateinit var mCanvas: Canvas//画布
+    lateinit var mRectF: RectF//绘图区域
+    lateinit var mViewRectF: RectF//view全部区域
+
+
+    lateinit var mDateRectF: RectF//十字线日期点击区域，弹出分时图
 
     var isDrawHighArrow = false //绘制最高价箭头
     var isDrawLowArrow = false //绘制最高价箭头
@@ -48,6 +51,8 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
     init {
         initView()
     }
+
+    constructor(context: Context?) : this(context, null)
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         mRectF = RectF(
@@ -153,22 +158,25 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
         }
     }
 
+    /**
+     * 绘制十字线选中日期和Value
+     * */
     private fun drawFocusDateValue(focusX: Float, focusY: Float) {
         val focusDrawItem = getFocusDrawItem()
-        val dateText = DateUtils.getYMD(focusDrawItem.day)
+        val dateText = "${DateUtils.getYMD(focusDrawItem.day)}  分时 > "
         val dateTextWidth = PaintUtils.WHITE_PAINT.measureText(dateText)
         //防止画出边界外
         val left = min(
             mRectF.right - dateTextWidth - textPadding * 2,
             max(mRectF.left, focusX - dateTextWidth / 2 - textPadding)
         )
-        mCanvas.drawRect(
-            left,
-            mRectF.bottom,
+
+        mDateRectF = RectF(
+            left, mRectF.bottom,
             left + dateTextWidth + textPadding * 2,
-            mRectF.bottom + DisplayUtils.dip2px(context, 15.0f),
-            PaintUtils.BLUE_RECTF_PAINT
+            mRectF.bottom + DisplayUtils.dip2px(context, 15.0f)
         )
+        mCanvas.drawRect(mDateRectF, PaintUtils.BLUE_RECTF_PAINT)
 
         mCanvas.drawText(
             dateText,
@@ -203,7 +211,6 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
                 PaintUtils.WHITE_PAINT
             )
         }
-
     }
 
     /**

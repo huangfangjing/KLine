@@ -81,6 +81,12 @@ public class PaintUtils {
     public final static int C_LINE_DIF = 0XFF4E8BEE;
 
     /**
+     * 浅蓝 Shadow
+     */
+    public static Paint SHADOW_BLUE_PAINT = new Paint();
+    public final static int SHADOW_BULE_COLOR = 0XFFdfecfe;
+
+    /**
      * 紫
      */
     public static Paint LINE_PURPLE_PAINT = new Paint();
@@ -120,7 +126,13 @@ public class PaintUtils {
         BLACK_PAINT.setColor(COLOR_BLACK);
         BLACK_PAINT.setAntiAlias(true);
 
+        SHADOW_BLUE_PAINT.setColor(SHADOW_BULE_COLOR);
+        SHADOW_BLUE_PAINT.setStyle(Paint.Style.FILL);
+        SHADOW_BLUE_PAINT.setAntiAlias(true);
+        SHADOW_BLUE_PAINT.setAlpha(100);
+
         WHITE_PAINT.setColor(COLOR_WHITE);
+        WHITE_PAINT.setStyle(Paint.Style.FILL);
         WHITE_PAINT.setAntiAlias(true);
 
         ARROW_BLACK_PAINT.setColor(COLOR_BLACK);

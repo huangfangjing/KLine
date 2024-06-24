@@ -11,14 +11,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.funny.kline.databinding.ActivityMainBinding
 import com.funny.klinelibrary.entity.KLineDrawItem
+import com.funny.klinelibrary.helper.KLineParser
 import com.funny.klinelibrary.helper.KLineSourceHelper
 import com.funny.klinelibrary.inter.IChartDataCountListener
 import com.funny.klinelibrary.inter.KlineGestureListener
-import com.funny.klinelibrary.helper.KLineParser
 import com.funny.klinelibrary.utils.LocalUtils
 import com.funny.klinelibrary.utils.PaintUtils
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.random.Random
 
 
 class MainActivity : AppCompatActivity(), KlineGestureListener {
@@ -31,7 +32,6 @@ class MainActivity : AppCompatActivity(), KlineGestureListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setStatusBarColor()
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
@@ -107,5 +107,14 @@ class MainActivity : AppCompatActivity(), KlineGestureListener {
         var vis = stateView.systemUiVisibility
         vis = vis and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv() //白色
         stateView.systemUiVisibility = vis //设置状态栏字体颜色
+    }
+
+    fun main() {
+
+        val random = Random(System.currentTimeMillis())
+        (1..30).forEach { i ->
+            val randomNumber = random.nextInt(-5, 5) // 生成[-5, 5]区间的随机整数
+            println("result$randomNumber")
+        }
     }
 }

@@ -14,7 +14,10 @@ import android.widget.LinearLayout
 import com.funny.klinelibrary.entity.ExtremeValue
 import com.funny.klinelibrary.entity.KLineDrawItem
 import com.funny.klinelibrary.helper.KLineSourceHelper
+import com.funny.klinelibrary.entity.MinuteData
 import com.funny.klinelibrary.inter.KlineGestureListener
+import com.funny.klinelibrary.utils.DateUtils
+import com.funny.klinelibrary.utils.DisplayUtils
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -76,6 +79,10 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
         return mKLineDatas[mKLineDatas.size - 1]
     }
 
+    private fun getKLineView(): KLineView {
+        return getChildAt(0) as KLineView
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         mGestureDetector.onTouchEvent(event)
         when (event.action and MotionEvent.ACTION_MASK) {
@@ -115,17 +122,47 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
     inner class SimpleGestureListener : SimpleOnGestureListener() {
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
+
+            val mostNearX = getMostNearX(e.x)
+            mFocusPoint = PointF(mostNearX, e.y)
+            val focusIndex = getFocusIndex(mostNearX)
+
             when (isPressState) {
                 true -> {
+
+                    val klineView = getKLineView()
+                    val focusDrawItem = klineView.getFocusDrawItem()
+
+                    if (mostNearX > klineView.mDateRectF.left && mostNearX < klineView.mDateRectF.right &&
+                        abs(e.y - klineView.mDateRectF.centerY()) < 60
+                    ) {
+                        (0 until childCount).map { getChildAt(it) }
+                            .filterIsInstance<MinuteLineView>().forEach {
+                                removeView(it)
+                            }
+                        addView(
+                            MinuteLineView(
+                                context, MinuteData(
+                                    DateUtils.getYMD(focusDrawItem.day),
+                                    focusDrawItem.high,
+                                    focusDrawItem.low,
+                                    focusDrawItem.open,
+                                    focusDrawItem.close,
+                                    focusDrawItem.preClose
+                                ).apply {
+                                    setRandomPrices()
+                                }
+                            )
+                        )
+                        return super.onSingleTapUp(e)
+                    }
+
                     isPressState = false
                     dispatchDrawData()
                 }
 
                 else -> {
                     isPressState = true
-                    val mostNearX = getMostNearX(e.x)
-                    mFocusPoint = PointF(mostNearX, e.y)
-                    val focusIndex = getFocusIndex(mostNearX)
                     dispatchLongPress(mFocusPoint, focusIndex)
                 }
             }
@@ -159,13 +196,13 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
     }
 
     fun dispatchLongPress(focusPoint: PointF, focusIndex: Int) {
-        (0 until childCount).map { getChildAt(it) }.forEach { child ->
-            child as BaseChartView
-            child.isLongPressState = true
-            child.mFocusPoint = focusPoint
-            child.mFocusIndex = focusIndex
-            child.drawData()
-        }
+        (0 until childCount).map { getChildAt(it) }
+            .filterIsInstance<BaseChartView>().forEach { child ->
+                child.isLongPressState = true
+                child.mFocusPoint = focusPoint
+                child.mFocusIndex = focusIndex
+                child.drawData()
+            }
         mKLineActionListener?.onLongPress(
             mKLineDatas[max(
                 0,
@@ -175,11 +212,11 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
     }
 
     fun dispatchDrawData() {
-        (0 until childCount).map { getChildAt(it) }.forEach { child ->
-            child as BaseChartView
-            child.isLongPressState = false
-            child.drawData()
-        }
+        (0 until childCount).map { getChildAt(it) }
+            .filterIsInstance<BaseChartView>().forEach { child ->
+                child.isLongPressState = false
+                child.drawData()
+            }
     }
 
     //获取最靠近的那根k线的中线x坐标

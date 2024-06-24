@@ -3,10 +3,12 @@ package com.funny.klinelibrary.widget
 import android.content.Context
 import android.graphics.Path
 import android.graphics.Rect
+import android.graphics.RectF
 import android.util.AttributeSet
 import com.funny.klinelibrary.entity.ExtremeValue
 import com.funny.klinelibrary.entity.KLineDrawItem
 import com.funny.klinelibrary.helper.KLineSourceHelper
+import com.funny.klinelibrary.utils.DisplayUtils
 import com.funny.klinelibrary.utils.NumFormatUtils
 import com.funny.klinelibrary.utils.PaintUtils
 import kotlin.math.max
@@ -17,6 +19,16 @@ import kotlin.math.min
  *@author : hfj
  */
 class VolumeView(context: Context?, attrs: AttributeSet?) : BaseChartView(context, attrs) {
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        mRectF = RectF(
+            DisplayUtils.dip2px(context, 10.0f).toFloat(),
+            DisplayUtils.dip2px(context, 15.0f).toFloat(),
+            (w - DisplayUtils.dip2px(context, 10.0f)).toFloat(),
+            (h - DisplayUtils.dip2px(context, 0.0f)).toFloat()
+        )
+    }
 
     override fun drawOutLine(mExtremeValue: ExtremeValue) {
         val path = Path()
