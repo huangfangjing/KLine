@@ -50,7 +50,7 @@
 
 //使用模拟数据（解析asset数据），数据准备完毕后回调
 
-private val onReadyListener: IChartDataCountListener<MutableList<KLineDrawItem>> =
+    private val onReadyListener: IChartDataCountListener<MutableList<KLineDrawItem>> =
 
         IChartDataCountListener{ data, extremeValue ->
         
@@ -72,8 +72,7 @@ private val onReadyListener: IChartDataCountListener<MutableList<KLineDrawItem>>
 
  //手势缩放   
 
- 
-override fun onChartTranslate(dX: Float) {
+    override fun onChartTranslate(dX: Float) {
 
         mHelper.initKLineDrawData(dX, KLineDataHelper.SourceType.MOVE)
         
@@ -82,8 +81,7 @@ override fun onChartTranslate(dX: Float) {
 
 //长按
 
-
-override fun onLongPress(drawItem: KLineDrawItem) {
+    override fun onLongPress(drawItem: KLineDrawItem) {
 
         mBinding.kLineData = drawItem
 
