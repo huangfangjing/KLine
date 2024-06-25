@@ -9,6 +9,7 @@ import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import com.funny.klinelibrary.R
 import com.funny.klinelibrary.entity.ExtremeValue
@@ -27,11 +28,10 @@ import kotlin.math.min
 open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     //绘图基本
-    private lateinit var mBitmap: Bitmap
+    lateinit var mBitmap: Bitmap
     lateinit var mCanvas: Canvas//画布
     lateinit var mRectF: RectF//绘图区域
     lateinit var mViewRectF: RectF//view全部区域
-
 
     lateinit var mDateRectF: RectF//十字线日期点击区域，弹出分时图
 
@@ -41,12 +41,6 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
     //数据
     var textPadding = 0 //绘制文字间距
     var calePadding = 0 //绘制刻度间距
-
-    //长按
-    var isLongPressState = false //记录长按状态
-    var mFocusPoint: PointF = PointF() //长按时十字线的交叉点
-    var mFocusIndex = 0 //长按时选中的k线list的index
-    private var popRect = RectF() //长按弹出的弹框
 
     init {
         initView()
@@ -59,7 +53,7 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
             DisplayUtils.dip2px(context, 10.0f).toFloat(),
             DisplayUtils.dip2px(context, 20.0f).toFloat(),
             (w - DisplayUtils.dip2px(context, 10.0f)).toFloat(),
-            (h - DisplayUtils.dip2px(context, 20.0f)).toFloat()
+            (h - DisplayUtils.dip2px(context, 15.0f)).toFloat()
         )
         mViewRectF = RectF(0F, 0F, w.toFloat(), h.toFloat())
         mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
@@ -72,14 +66,6 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
         calePadding = DisplayUtils.dip2px(context, 3.0f)
     }
 
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        if (!mBitmap.isRecycled) {
-            mBitmap.recycle()
-        }
-    }
-
     fun getLastDrawItem(): KLineDrawItem {
         return getKLineDatas()[getKLineDatas().size - 1]
     }
@@ -89,7 +75,7 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
     }
 
     fun getFocusDrawItem(): KLineDrawItem {
-        return getKLineDatas()[max(0, min(mFocusIndex, getKLineDatas().size - 1))]
+        return getKLineDatas()[max(0, min(getFocusIndex(), getKLineDatas().size - 1))]
     }
 
     /**
@@ -112,8 +98,29 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
     /**
      * 数据源
      */
+    private fun getViewGroup(): KLineViewGroup {
+        return (parent as KLineViewGroup)
+    }
+
+    /**
+     * 数据源
+     */
     fun getKLineDatas(): MutableList<KLineDrawItem> {
-        return (parent as KLineViewGroup).mKLineDatas
+        return getViewGroup().mKLineDatas
+    }
+
+    /**
+     * 选中的index
+     */
+    fun getFocusIndex(): Int {
+        return getViewGroup().mFocusIndex
+    }
+
+    /**
+     * 选中的focusPoint
+     */
+    fun getFocusPoint(): PointF {
+        return getViewGroup().mFocusPoint
     }
 
     /**
@@ -123,7 +130,7 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
 
     }
 
-    private fun getString(id: Int): String {
+    fun getString(id: Int): String {
         return context.resources.getString(id)
     }
 
@@ -138,159 +145,36 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
      * 绘制长按时十字线
      */
     open fun drawCrossLine() {
-        if (isLongPressState) {
-            mFocusIndex =
-                (((mFocusPoint.x - mRectF.left) * KLineSourceHelper.K_D_COLUMNS / mRectF.width()).toInt())
-            mFocusIndex = max(0, min(mFocusIndex, KLineSourceHelper.K_D_COLUMNS - 1))
 
-            if (mViewRectF.contains(mFocusPoint.x, mFocusPoint.y)) {
+        when (KLineViewGroup.CHART_STATE) {
+
+            KLineViewGroup.STATE_SINGLE_CLICK, KLineViewGroup.STATE_LONG_PRESSED -> {
+
+                // 附图实际y轴位置
+                val focusY: Float = getFocusPoint().y - y
+
+                if (mViewRectF.contains(getFocusPoint().x, focusY)) {
+                    mCanvas.drawLine(
+                        mRectF.left, focusY, mRectF.right, focusY,
+                        PaintUtils.FOCUS_LINE_PAINT
+                    )
+                }
                 mCanvas.drawLine(
-                    mRectF.left, mFocusPoint.y, mRectF.right, mFocusPoint.y,
+                    getFocusPoint().x, 0f, getFocusPoint().x, mRectF.bottom,
                     PaintUtils.FOCUS_LINE_PAINT
                 )
             }
-            mCanvas.drawLine(
-                mFocusPoint.x, mRectF.top, mFocusPoint.x, measuredHeight.toFloat(),
-                PaintUtils.FOCUS_LINE_PAINT
-            )
-            showLongPressDialog()
-            drawFocusDateValue(mFocusPoint.x, mFocusPoint.y)
+
+            KLineViewGroup.STATE_SHOW_MINTUNE -> {
+                mCanvas.drawLine(
+                    getFocusPoint().x, mViewRectF.top, getFocusPoint().x, mViewRectF.height(),
+                    PaintUtils.DOT_LINE_PAINT
+                )
+            }
         }
     }
 
-    /**
-     * 绘制十字线选中日期和Value
-     * */
-    private fun drawFocusDateValue(focusX: Float, focusY: Float) {
-        val focusDrawItem = getFocusDrawItem()
-        val dateText = "${DateUtils.getYMD(focusDrawItem.day)}  分时 > "
-        val dateTextWidth = PaintUtils.WHITE_PAINT.measureText(dateText)
-        //防止画出边界外
-        val left = min(
-            mRectF.right - dateTextWidth - textPadding * 2,
-            max(mRectF.left, focusX - dateTextWidth / 2 - textPadding)
-        )
-
-        mDateRectF = RectF(
-            left, mRectF.bottom,
-            left + dateTextWidth + textPadding * 2,
-            mRectF.bottom + DisplayUtils.dip2px(context, 15.0f)
-        )
-        mCanvas.drawRect(mDateRectF, PaintUtils.BLUE_RECTF_PAINT)
-
-        mCanvas.drawText(
-            dateText,
-            max(
-                mRectF.left + textPadding.toFloat(),
-                min(focusX - dateTextWidth / 2, mRectF.right - textPadding - dateTextWidth)
-            ),
-            mRectF.bottom + textPadding * 2,
-            PaintUtils.WHITE_PAINT
-        )
-        if (focusY in mRectF.top + DisplayUtils.dip2px(
-                context,
-                15.0f
-            ) / 2..mRectF.bottom - DisplayUtils.dip2px(context, 15.0f) / 2
-        ) {
-            val focusValue =
-                (mRectF.height() - focusY + mRectF.top) / mRectF.height() *
-                        (getExtremeValue().mKMaxPrice - getExtremeValue().mKMinPrice) + getExtremeValue().mKMinPrice
-            val focusValueText = NumFormatUtils.formatFloat(focusValue, 2).toString()
-            val focusValueWidth = PaintUtils.WHITE_PAINT.measureText(focusValueText)
-            mCanvas.drawRect(
-                mRectF.left,
-                focusY - DisplayUtils.dip2px(context, 15.0f) / 2,
-                focusValueWidth + mRectF.left + textPadding * 2,
-                focusY + DisplayUtils.dip2px(context, 15.0f) / 2,
-                PaintUtils.BLUE_RECTF_PAINT
-            )
-            mCanvas.drawText(
-                focusValueText,
-                mRectF.left + textPadding,
-                focusY - DisplayUtils.dip2px(context, 15.0f) / 2 + textPadding * 2,
-                PaintUtils.WHITE_PAINT
-            )
-        }
-    }
-
-    /**
-     * 长按显示的弹框内容
-     */
-    private fun showLongPressDialog() {
-        val item = getKLineDatas()[max(
-            0,
-            min(mFocusIndex, (getKLineDatas().size - 1))
-        )]
-        val popRectWith = DisplayUtils.dip2px(context, 100f)
-        val popRectHeight = DisplayUtils.dip2px(context, 110f)
-        val left = when (mFocusPoint.x > mRectF.centerX()) {
-            true ->
-                mFocusPoint.x - DisplayUtils.dip2px(context, 50f) - popRectWith
-
-            else -> mFocusPoint.x + DisplayUtils.dip2px(context, 50f)
-        }
-        val top: Float = mRectF.top + 50
-        popRect.left = left
-        popRect.top = top
-        popRect.right = left + popRectWith
-        popRect.bottom = top + popRectHeight
-        mCanvas.drawRect(popRect, PaintUtils.POP_DIALOG_PAINT)
-
-        val perHeight = popRect.height() / 6
-
-        drawPopText(
-            mCanvas,
-            popRect,
-            getString(R.string.open),
-            java.lang.String.valueOf(item.open),
-            item.compare(item.open),
-            perHeight
-        )
-        drawPopText(
-            mCanvas,
-            popRect,
-            getString(R.string.hign),
-            java.lang.String.valueOf(item.high),
-            item.compare(item.high),
-            perHeight * 2
-        )
-        drawPopText(
-            mCanvas,
-            popRect,
-            getString(R.string.low),
-            java.lang.String.valueOf(item.low),
-            item.compare(item.low),
-            perHeight * 3
-        )
-        drawPopText(
-            mCanvas,
-            popRect,
-            getString(R.string.close),
-            java.lang.String.valueOf(item.close),
-            item.isFall,
-            perHeight * 4
-        )
-        drawPopText(
-            mCanvas,
-            popRect,
-            getString(R.string.diff),
-            item.increaseExtra,
-            item.isFall,
-            perHeight * 5
-        )
-        val chg: Float = (item.close - item.preClose) * 100 / item.preClose
-        val chgDesc = NumFormatUtils.formatFloat(chg, 2, true, true, "--", "--", false)
-        drawPopText(
-            mCanvas,
-            popRect,
-            getString(R.string.chg),
-            chgDesc,
-            item.isFall,
-            perHeight * 6
-        )
-    }
-
-    private fun drawPopText(
+    fun drawPopText(
         canvas: Canvas, popRect: RectF, title: String, value: String, isFall: Boolean,
         y: Float
     ) {

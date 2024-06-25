@@ -26,7 +26,7 @@ class VolumeView(context: Context?, attrs: AttributeSet?) : BaseChartView(contex
             DisplayUtils.dip2px(context, 10.0f).toFloat(),
             DisplayUtils.dip2px(context, 15.0f).toFloat(),
             (w - DisplayUtils.dip2px(context, 10.0f)).toFloat(),
-            (h - DisplayUtils.dip2px(context, 0.0f)).toFloat()
+            (h - DisplayUtils.dip2px(context, 0f)).toFloat()
         )
     }
 
@@ -57,7 +57,8 @@ class VolumeView(context: Context?, attrs: AttributeSet?) : BaseChartView(contex
             PaintUtils.TEXT_PAINT
         )
 
-        val item = getKLineDatas()[if (isLongPressState) mFocusIndex else getKLineDatas().size - 1]
+        val item =
+            getKLineDatas()[if (KLineViewGroup.CHART_STATE == KLineViewGroup.STATE_DEFAULT) getFocusIndex() else getKLineDatas().size - 1]
         val volumeDes = "当前量:" + NumFormatUtils.formatBigFloatAll(item.volume.toFloat(), 2)
 
         mCanvas.drawText(
@@ -83,29 +84,11 @@ class VolumeView(context: Context?, attrs: AttributeSet?) : BaseChartView(contex
         invalidate()
     }
 
-    override fun drawCrossLine() {
-        //绘制十字线
-        if (isLongPressState) {
-            mFocusIndex =
-                (((mFocusPoint.x - mRectF.left) * KLineSourceHelper.K_D_COLUMNS / mRectF.width()).toInt())
-            mFocusIndex = max(0, min(mFocusIndex, KLineSourceHelper.K_D_COLUMNS - 1))
 
-            // 附图实际y轴位置
-            val focusY: Float = mFocusPoint.y - y
-
-            if (mViewRectF.contains(mFocusPoint.x, focusY)) {
-                mCanvas.drawLine(
-                    mRectF.left, focusY, mRectF.right, focusY,
-                    PaintUtils.FOCUS_LINE_PAINT
-                )
-            }
-            mCanvas.drawLine(
-                mFocusPoint.x, 0f, mFocusPoint.x, mRectF.bottom,
-                PaintUtils.FOCUS_LINE_PAINT
-            )
-            invalidate()
-            return
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        if (!mBitmap.isRecycled) {
+            mBitmap.recycle()
         }
     }
-
 }

@@ -1,16 +1,18 @@
 package com.funny.klinelibrary.widget
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Path
-import android.graphics.Rect
 import android.graphics.RectF
-import android.view.View
+import android.util.Log
 import android.widget.LinearLayout
+import com.funny.klinelibrary.R
 import com.funny.klinelibrary.entity.MinuteData
 import com.funny.klinelibrary.utils.DisplayUtils
 import com.funny.klinelibrary.utils.NumFormatUtils
 import com.funny.klinelibrary.utils.PaintUtils
+import kotlin.random.Random
 
 /**
  * 分时图
@@ -19,139 +21,239 @@ import com.funny.klinelibrary.utils.PaintUtils
 class MinuteLineView(
     context: Context,
     private val minuteData: MinuteData,
-    private var height: Int = 150
-) : View(context) {
+) : BaseChartView(context) {
 
-    lateinit var mRectF: RectF//绘图区域
-    lateinit var mViewRectF: RectF//view全部区域
+    private var neverDraw = true
 
-    var textPadding = 0 //绘制文字间距
-    var calePadding = 0 //绘制刻度间距
+    private val valuePath = Path()
+    private val showdowPath = Path()
+    private val averagePath = Path()
 
-    init {
-        initView()
-    }
+    private lateinit var mValueRectF: RectF
+    private lateinit var mVolumeRectF: RectF
 
-    private fun initView() {
+
+    override fun initView() {
+        super.initView()
         layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            DisplayUtils.dip2px(context, height.toFloat())
+            DisplayUtils.dip2px(context, 180f)
         )
-        textPadding = DisplayUtils.dip2px(context, 5.0f)
-        calePadding = DisplayUtils.dip2px(context, 3.0f)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
         mRectF = RectF(
             DisplayUtils.dip2px(context, 10.0f).toFloat(),
             DisplayUtils.dip2px(context, 20.0f).toFloat(),
             (w - DisplayUtils.dip2px(context, 10.0f)).toFloat(),
-            (h - DisplayUtils.dip2px(context, 0.0f)).toFloat()
+            (h - DisplayUtils.dip2px(context, 0f)).toFloat()
         )
-        mViewRectF = RectF(0F, 0F, w.toFloat(), h.toFloat())
+        mValueRectF = RectF(
+            mRectF.left,
+            mRectF.top,
+            mRectF.right,
+            mRectF.top + DisplayUtils.dip2px(context, 85f)
+        )
+        mVolumeRectF = RectF(
+            mRectF.left,
+            mRectF.top * 2 + mValueRectF.height(),
+            mRectF.right,
+            mRectF.bottom
+        )
     }
 
     /**
      * 绘制边框
      */
-    private fun drawOutLine(canvas: Canvas) {
-        canvas.drawRect(
-            mViewRectF.left, mViewRectF.top, mViewRectF.right, mViewRectF.bottom,
-            PaintUtils.WHITE_PAINT
-        )
+    private fun drawOutLine() {
 
-        canvas.drawRect(
-            mRectF.left, mRectF.top, mRectF.right, mRectF.bottom,
+        mCanvas.drawRect(
+            mValueRectF.left, mValueRectF.top, mValueRectF.right, mValueRectF.bottom,
             PaintUtils.GRID_DIVIDER
         )
 
-        canvas.drawLine(
-            mRectF.left,
-            mRectF.centerY(),
-            mRectF.right,
-            mRectF.centerY(),
+        mCanvas.drawLine(
+            mValueRectF.left,
+            mValueRectF.centerY(),
+            mValueRectF.right,
+            mValueRectF.centerY(),
+            PaintUtils.GRID_DIVIDER
+        )
+
+        mCanvas.drawLine(
+            mValueRectF.centerX(),
+            mValueRectF.top,
+            mValueRectF.centerX(),
+            mValueRectF.bottom,
             PaintUtils.GRID_DIVIDER
         )
 
         //绘制价格刻度
         val maxPriceText = NumFormatUtils.formatFloat(minuteData.heighLimit, 2).toString()
-        canvas.drawText(
+        mCanvas.drawText(
             maxPriceText,
-            mRectF.left + calePadding,
-            mRectF.top + textPadding * 2,
+            mValueRectF.left + calePadding,
+            mValueRectF.top + textPadding * 2,
             PaintUtils.TEXT_PAINT
         )
 
         val middlePrice =
             NumFormatUtils.formatFloat((minuteData.heighLimit + minuteData.lowLimit) / 2, 2)
                 .toString()
-        canvas.drawText(
+        mCanvas.drawText(
             middlePrice,
-            mRectF.left + calePadding,
-            mRectF.centerY() - calePadding,
+            mValueRectF.left + calePadding,
+            mValueRectF.centerY() - calePadding,
             PaintUtils.TEXT_PAINT
         )
 
         val minPriceText = NumFormatUtils.formatFloat(minuteData.lowLimit, 2).toString()
-        canvas.drawText(
+        mCanvas.drawText(
             minPriceText,
-            mRectF.left + calePadding,
-            mRectF.bottom - textPadding,
+            mValueRectF.left + calePadding,
+            mValueRectF.bottom - textPadding,
             PaintUtils.TEXT_PAINT
         )
 
         val dataText = "${minuteData.day}   分时图"
-        canvas.drawText(
-            dataText, mRectF.left,
-            mRectF.top - textPadding,
+        mCanvas.drawText(
+            dataText,
+            mValueRectF.left,
+            mValueRectF.top - textPadding,
             PaintUtils.TEXT_PAINT
         )
+
+        val averageText = "均价:${minuteData.averagePrice.last()}"
+        mCanvas.drawText(
+            averageText,
+            mValueRectF.left + PaintUtils.TEXT_PAINT.measureText(dataText) + textPadding * 2,
+            mValueRectF.top - textPadding,
+            PaintUtils.TEXT_YELLOW_PAINT
+        )
+
+        val closeText = "收盘:${minuteData.closePrice}"
+        mCanvas.drawText(
+            closeText,
+            mValueRectF.left + PaintUtils.TEXT_PAINT.measureText(dataText) +
+                    textPadding * 4 + PaintUtils.TEXT_PAINT.measureText(averageText),
+            mValueRectF.top - textPadding,
+            if (minuteData.isFall) PaintUtils.TEXT_GREEN_PAINT_8 else PaintUtils.TEXT_RED_PAINT_8
+        )
+
+
+        val measureText = PaintUtils.TEXT_PAINT.measureText("09:30")
+        mCanvas.drawText(
+            "09:30", mValueRectF.left,
+            mValueRectF.bottom + textPadding * 2,
+            PaintUtils.TEXT_PAINT
+        )
+        mCanvas.drawText(
+            "11:30", mValueRectF.centerX() - measureText / 2,
+            mValueRectF.bottom + textPadding * 2,
+            PaintUtils.TEXT_PAINT
+        )
+        mCanvas.drawText(
+            "15:00", mValueRectF.right - measureText,
+            mValueRectF.bottom + textPadding * 2,
+            PaintUtils.TEXT_PAINT
+        )
+
+        mCanvas.drawRect(
+            mVolumeRectF.left, mVolumeRectF.top, mVolumeRectF.right, mVolumeRectF.bottom,
+            PaintUtils.GRID_DIVIDER
+        )
+
+        val evenWidth = mRectF.width() / minuteData.volumes.size
+        minuteData.volumes.forEachIndexed { i, _ ->
+
+            mCanvas.drawRect(
+                mRectF.left + (0.125f + i) * evenWidth,
+                mVolumeRectF.top + (1 - minuteData.volumes[i] / 100f) * mVolumeRectF.height(),//分时量最大假设是10
+                mRectF.left + (0.875f + i) * evenWidth,
+                mVolumeRectF.bottom,
+                if (Random.nextBoolean()) PaintUtils.KLINE_PAINT_RED else PaintUtils.KLINE_PAINT_GREEN
+            )
+        }
     }
 
     /**
      * 绘制分时图
      */
-    private fun drawMinnutePath(canvas: Canvas) {
-        val valuePath = Path()
-        val showdowPath = Path()
-        val evenWidth = mRectF.width() / 120
+    private fun drawMinnutePath() {
+
+        val evenWidth = mValueRectF.width() / 120
         valuePath.moveTo(
-            mRectF.left + evenWidth * 0.5f,
-            mRectF.top + mRectF.height() * (minuteData.heighLimit - minuteData.prices[0]) /
+            mValueRectF.left + evenWidth * 0.5f,
+            mValueRectF.top + mValueRectF.height() * (minuteData.heighLimit - minuteData.prices[0]) /
                     (minuteData.heighLimit - minuteData.lowLimit)
         )
+
         showdowPath.moveTo(
-            mRectF.left + evenWidth * 0.5f,
-            mRectF.top + mRectF.height() * (minuteData.heighLimit - minuteData.prices[0]) /
+            mValueRectF.left + evenWidth * 0.5f,
+            mValueRectF.top + mValueRectF.height() * (minuteData.heighLimit - minuteData.prices[0]) /
                     (minuteData.heighLimit - minuteData.lowLimit)
         )
+
+        averagePath.moveTo(
+            mValueRectF.left + evenWidth * 0.5f,
+            (mValueRectF.top + mValueRectF.height() * (minuteData.heighLimit - minuteData.averagePrice[0]) /
+                    (minuteData.heighLimit - minuteData.lowLimit)).toFloat()
+        )
+
+
+
         (1..119).forEach { i ->
             valuePath.lineTo(
-                mRectF.left + evenWidth * (i + 0.5f),
-                mRectF.top + mRectF.height() * (minuteData.heighLimit - minuteData.prices[i]) /
+                mValueRectF.left + evenWidth * (i + 0.5f),
+                mValueRectF.top + mValueRectF.height() * (minuteData.heighLimit - minuteData.prices[i]) /
                         (minuteData.heighLimit - minuteData.lowLimit)
             )
 
             showdowPath.lineTo(
-                mRectF.left + evenWidth * (i + 0.5f),
-                mRectF.top + mRectF.height() * (minuteData.heighLimit - minuteData.prices[i]) /
+                mValueRectF.left + evenWidth * (i + 0.5f),
+                mValueRectF.top + mValueRectF.height() * (minuteData.heighLimit - minuteData.prices[i]) /
                         (minuteData.heighLimit - minuteData.lowLimit)
+            )
+
+            averagePath.lineTo(
+                mValueRectF.left + evenWidth * (i + 0.5f),
+                (mValueRectF.top + mValueRectF.height() * (minuteData.heighLimit - minuteData.averagePrice[i]) /
+                        (minuteData.heighLimit - minuteData.lowLimit))
             )
         }
 
-        showdowPath.lineTo(mRectF.right, mRectF.bottom)
-        showdowPath.lineTo(mRectF.left, mRectF.bottom)
+        showdowPath.lineTo(mValueRectF.right, mValueRectF.bottom)
+        showdowPath.lineTo(mValueRectF.left, mValueRectF.bottom)
         showdowPath.close()
-        canvas.drawPath(valuePath, PaintUtils.LINE_BLUE_PAINT)
-        canvas.drawPath(showdowPath, PaintUtils.SHADOW_BLUE_PAINT)
+        mCanvas.drawPath(valuePath, PaintUtils.LINE_BLUE_PAINT)
+        mCanvas.drawPath(showdowPath, PaintUtils.SHADOW_BLUE_PAINT)
+        if (!minuteData.isOneLine) {
+            mCanvas.drawPath(averagePath, PaintUtils.LINE_YELLOW_PAINT)
+        }
     }
 
+    /**
+     * 绘制关闭分时图按钮
+     */
+    private fun drawCloseRect() {
+        val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.close)
+        mCanvas.drawBitmap(bitmap, mRectF.right - bitmap.width, 0f, null)
+    }
+
+    override fun drawData() {
+        super.drawData()
+        drawOutLine()//边框
+        drawMinnutePath()//分时图
+        drawCloseRect()//关闭按钮
+        invalidate()
+    }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        drawOutLine(canvas)
-        drawMinnutePath(canvas)
+        if (neverDraw) {
+            drawData()
+            neverDraw = false
+        }
     }
-
-
 }

@@ -258,8 +258,7 @@
             <com.funny.klinelibrary.widget.KLineView
                 android:id="@+id/klineView"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_marginTop="10dp" />
+                android:layout_height="250dp" />
 
             <com.funny.klinelibrary.widget.VolumeView
                 android:id="@+id/volumeView"

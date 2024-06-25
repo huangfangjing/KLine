@@ -3,6 +3,7 @@ package com.funny.kline
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.Window
@@ -32,6 +33,7 @@ class MainActivity : AppCompatActivity(), KlineGestureListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setStatusBarColor()
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
@@ -73,7 +75,6 @@ class MainActivity : AppCompatActivity(), KlineGestureListener {
         IChartDataCountListener{ data, extremeValue ->
             mBinding.klineGroup.setData(data, extremeValue)
             mBinding.klineGroup.dispatchDrawData()
-            mBinding.kLineData = data[data.size - 1]
         }
 
     override fun onChartTranslate(me: MotionEvent?, dX: Float) {
@@ -90,7 +91,7 @@ class MainActivity : AppCompatActivity(), KlineGestureListener {
         mHelper.initKLineDrawData(0f, KLineSourceHelper.SourceType.SCALE)
     }
 
-    override fun onLongPress(drawItem: KLineDrawItem) {
+    override fun onFocusData(drawItem: KLineDrawItem) {
         mBinding.kLineData = drawItem
     }
 
@@ -109,12 +110,4 @@ class MainActivity : AppCompatActivity(), KlineGestureListener {
         stateView.systemUiVisibility = vis //设置状态栏字体颜色
     }
 
-    fun main() {
-
-        val random = Random(System.currentTimeMillis())
-        (1..30).forEach { i ->
-            val randomNumber = random.nextInt(-5, 5) // 生成[-5, 5]区间的随机整数
-            println("result$randomNumber")
-        }
-    }
 }

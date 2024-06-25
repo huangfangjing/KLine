@@ -13,8 +13,8 @@ import android.view.MotionEvent
 import android.widget.LinearLayout
 import com.funny.klinelibrary.entity.ExtremeValue
 import com.funny.klinelibrary.entity.KLineDrawItem
-import com.funny.klinelibrary.helper.KLineSourceHelper
 import com.funny.klinelibrary.entity.MinuteData
+import com.funny.klinelibrary.helper.KLineSourceHelper
 import com.funny.klinelibrary.inter.KlineGestureListener
 import com.funny.klinelibrary.utils.DateUtils
 import com.funny.klinelibrary.utils.DisplayUtils
@@ -27,8 +27,11 @@ import kotlin.math.min
  */
 class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(context, attrs) {
 
-    private lateinit var mGestureDetector: GestureDetector //手势识别
-    private var mKLineActionListener: KlineGestureListener? = null//动作监听回调
+    //手势识别
+    private lateinit var mGestureDetector: GestureDetector
+
+    //动作监听回调
+    private var mKLineActionListener: KlineGestureListener? = null
 
     //移动
     private var scrollX = 0f //x方向移动的距离
@@ -37,9 +40,10 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
     private var mStartXDist = 0f //两指按下时x方向的距离
 
     //长按
-    private var isPressState = false //记录点击状态
-    private var isLongPressState = false //记录长按状态
-    private var mFocusPoint: PointF = PointF() //长按时十字线的交叉点
+    var mFocusPoint: PointF = PointF() //长按时十字线的交叉点
+
+    //选中的index
+    var mFocusIndex: Int = 0 //长按时十字线的交叉点
 
     //数据源
     lateinit var mKLineDatas: MutableList<KLineDrawItem>
@@ -49,12 +53,42 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
     private val mHandler: Handler = Handler(Looper.getMainLooper())
 
     private val mRunnable = Runnable {
-        if (isPressState) {
-            isPressState = false
-            isLongPressState = false
+
+        if (CHART_STATE == STATE_SINGLE_CLICK) {
+            CHART_STATE = STATE_DEFAULT
             dispatchDrawData()
-            mKLineActionListener?.onLongPress(getLastDrawItem())
+            mKLineActionListener?.onFocusData(getLastDrawItem())
         }
+
+    }
+
+    companion object {
+
+        /**
+         * 默认状态
+         */
+        const val STATE_DEFAULT = 0
+
+        /**
+         * 点击状态
+         */
+        const val STATE_SINGLE_CLICK = 1
+
+
+        /**
+         * 长按状态
+         */
+        const val STATE_LONG_PRESSED = 2
+
+        /**
+         * 显示分时图状态
+         */
+        const val STATE_SHOW_MINTUNE = 3
+
+        /**
+         * 当前状态
+         */
+        var CHART_STATE = STATE_DEFAULT
     }
 
     init {
@@ -76,22 +110,39 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
     }
 
     private fun getLastDrawItem(): KLineDrawItem {
-        return mKLineDatas[mKLineDatas.size - 1]
+        return mKLineDatas.last()
     }
 
     private fun getKLineView(): KLineView {
         return getChildAt(0) as KLineView
     }
 
+    private fun getMinuteLineView(): MinuteLineView? {
+
+        (0 until childCount).map { getChildAt(it) }.forEach {
+            if (it is MinuteLineView) {
+                return it
+            }
+        }
+        return null
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         mGestureDetector.onTouchEvent(event)
         when (event.action and MotionEvent.ACTION_MASK) {
             MotionEvent.ACTION_MOVE -> {
-                if (isLongPressState) {
-                    val mostNearX = getMostNearX(event.x)
-                    mFocusPoint = PointF(mostNearX, event.y)
-                    dispatchLongPress(mFocusPoint, getFocusIndex(mostNearX))
+
+                when (CHART_STATE) {
+
+                    STATE_LONG_PRESSED, STATE_SHOW_MINTUNE -> {
+
+                        val mostNearX = getMostNearX(event.x)
+                        mFocusPoint = PointF(mostNearX, event.y)
+                        mFocusIndex = getFocusIndex(mostNearX)
+                        dispatchDrawData(false)
+                    }
                 }
+
                 if (event.pointerCount == 2) {
                     val xDist = abs((event.getX(0) - event.getX(1)))
                     val scaleX = xDist / mStartXDist
@@ -104,15 +155,22 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
             }
 
             MotionEvent.ACTION_UP -> {
-                if (isLongPressState) {
-                    isLongPressState = false
-                    dispatchDrawData()
-                }
-                if (isPressState) {
-                    mHandler.postDelayed(mRunnable, 4000)
-                } else {
-                    mHandler.removeCallbacks(mRunnable)
-                    mKLineActionListener?.onLongPress(getLastDrawItem())
+
+                when (CHART_STATE) {
+                    STATE_LONG_PRESSED -> {
+                        CHART_STATE = STATE_DEFAULT
+                        dispatchDrawData()
+                    }
+
+                    STATE_SHOW_MINTUNE -> {
+
+                        val mostNearX = getMostNearX(event.x)
+                        mFocusPoint = PointF(mostNearX, event.y)
+                        mFocusIndex = getFocusIndex(mostNearX)
+                        val klineView = getKLineView()
+                        val focusDrawItem = klineView.getFocusDrawItem()
+                        openMintuneValue(focusDrawItem)
+                    }
                 }
             }
         }
@@ -125,45 +183,60 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
 
             val mostNearX = getMostNearX(e.x)
             mFocusPoint = PointF(mostNearX, e.y)
-            val focusIndex = getFocusIndex(mostNearX)
+            mFocusIndex = getFocusIndex(mostNearX)
 
-            when (isPressState) {
-                true -> {
+            val klineView = getKLineView()
 
-                    val klineView = getKLineView()
-                    val focusDrawItem = klineView.getFocusDrawItem()
+            when (CHART_STATE) {
 
+                //单击状态时点击
+                STATE_SINGLE_CLICK -> {
+
+                    //判断点击打开分时图
                     if (mostNearX > klineView.mDateRectF.left && mostNearX < klineView.mDateRectF.right &&
-                        abs(e.y - klineView.mDateRectF.centerY()) < 60
+                        abs(e.y - klineView.mDateRectF.centerY()) < 60 && CHART_STATE != STATE_SHOW_MINTUNE
                     ) {
-                        (0 until childCount).map { getChildAt(it) }
-                            .filterIsInstance<MinuteLineView>().forEach {
-                                removeView(it)
-                            }
-                        addView(
-                            MinuteLineView(
-                                context, MinuteData(
-                                    DateUtils.getYMD(focusDrawItem.day),
-                                    focusDrawItem.high,
-                                    focusDrawItem.low,
-                                    focusDrawItem.open,
-                                    focusDrawItem.close,
-                                    focusDrawItem.preClose
-                                ).apply {
-                                    setRandomPrices()
-                                }
-                            )
-                        )
+
+                        //开启分时图
+                        CHART_STATE = STATE_SHOW_MINTUNE
+                        dispatchDrawData(false)
                         return super.onSingleTapUp(e)
                     }
 
-                    isPressState = false
+                    //关闭所有状态
+                    CHART_STATE = STATE_DEFAULT
                     dispatchDrawData()
+                    mHandler.removeCallbacks(mRunnable)
+                }
+
+                //分时图开启状态时点击
+                STATE_SHOW_MINTUNE -> {
+
+                    val minuteLineView = getMinuteLineView()
+
+                    if (minuteLineView != null && RectF(
+                            minuteLineView.mViewRectF.right - DisplayUtils.dip2px(context, 40.0f),
+                            minuteLineView.top.toFloat(),
+                            minuteLineView.mViewRectF.right,
+                            (minuteLineView.top + DisplayUtils.dip2px(context, 40.0f)).toFloat()
+                        )
+                            .contains(mFocusPoint.x, mFocusPoint.y)
+                    ) {
+
+                        closeMintuneValue()
+                        CHART_STATE = STATE_DEFAULT
+                        dispatchDrawData()
+                        return super.onSingleTapUp(e)
+                    }
+
+                    dispatchDrawData(false)
                 }
 
                 else -> {
-                    isPressState = true
-                    dispatchLongPress(mFocusPoint, focusIndex)
+                    //默认状态
+                    CHART_STATE = STATE_SINGLE_CLICK
+                    dispatchDrawData(false)
+                    mHandler.postDelayed(mRunnable, 4000)//四秒无操作后自动关闭选中状态
                 }
             }
             return super.onSingleTapUp(e)
@@ -171,11 +244,24 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
 
         override fun onLongPress(e: MotionEvent) {
             super.onLongPress(e)
-            isPressState = false
-            isLongPressState = true
+
             val mostNearX = getMostNearX(e.x)
             mFocusPoint = PointF(mostNearX, e.y)
-            dispatchLongPress(mFocusPoint, getFocusIndex(mostNearX))
+            mFocusIndex = getFocusIndex(mostNearX)
+
+            when (CHART_STATE) {
+                STATE_SHOW_MINTUNE -> {
+
+                    CHART_STATE = STATE_SHOW_MINTUNE
+                    dispatchDrawData(false)
+                }
+
+                else -> {
+
+                    CHART_STATE = STATE_LONG_PRESSED
+                    dispatchDrawData(false)
+                }
+            }
         }
 
         override fun onScroll(
@@ -193,33 +279,55 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
             scrollX = 0f
             return true
         }
+
     }
 
-    fun dispatchLongPress(focusPoint: PointF, focusIndex: Int) {
+    /**
+     * 开启分时图
+     */
+    private fun openMintuneValue(focusDrawItem: KLineDrawItem) {
+
+        closeMintuneValue()
+        addView(
+            MinuteLineView(
+                context, MinuteData(
+                    DateUtils.getYMD(focusDrawItem.day),
+                    focusDrawItem.high,
+                    focusDrawItem.low,
+                    focusDrawItem.open,
+                    focusDrawItem.close,
+                    focusDrawItem.preClose
+                ).apply {
+                    setRandomPrices()
+                }
+            )
+        )
+    }
+
+    private fun closeMintuneValue() {
+        (0 until childCount).map { getChildAt(it) }
+            .filterIsInstance<MinuteLineView>().forEach {
+                removeView(it)
+            }
+    }
+
+    fun dispatchDrawData(focusLast: Boolean = true) {
         (0 until childCount).map { getChildAt(it) }
             .filterIsInstance<BaseChartView>().forEach { child ->
-                child.isLongPressState = true
-                child.mFocusPoint = focusPoint
-                child.mFocusIndex = focusIndex
                 child.drawData()
             }
-        mKLineActionListener?.onLongPress(
-            mKLineDatas[max(
+
+        mKLineActionListener?.onFocusData(
+            if (focusLast) getLastDrawItem() else mKLineDatas[max(
                 0,
-                min(focusIndex, mKLineDatas.size - 1)
+                min(mFocusIndex, mKLineDatas.size - 1)
             )]
         )
     }
 
-    fun dispatchDrawData() {
-        (0 until childCount).map { getChildAt(it) }
-            .filterIsInstance<BaseChartView>().forEach { child ->
-                child.isLongPressState = false
-                child.drawData()
-            }
-    }
-
-    //获取最靠近的那根k线的中线x坐标
+    /**
+     * 获取最靠近的那根k线的中线x坐标
+     */
     private fun getMostNearX(x: Float): Float {
         var resultX = -1.0f
         for (i in mKLineDatas.indices) {
@@ -236,7 +344,9 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
         return resultX
     }
 
-    //获取最靠近的那根k线的中线x坐标
+    /**
+     * 根据x坐标获取focusIndex
+     */
     private fun getFocusIndex(x: Float): Int {
         for (i in mKLineDatas.indices) {
             if (mKLineDatas[i].rect.centerX() == x) {

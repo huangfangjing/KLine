@@ -1,6 +1,7 @@
 package com.funny.klinelibrary.utils;
 
 import android.content.Context;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.util.TypedValue;
 
@@ -58,12 +59,14 @@ public class PaintUtils {
      * 红
      */
     public static Paint TEXT_RED_PAINT = new Paint();
+    public static Paint TEXT_RED_PAINT_8 = new Paint();
     public final static int C_TEXT_RED = 0xfffd4331;
 
     /**
      * 绿
      */
     public static Paint TEXT_GREEN_PAINT = new Paint();
+    public static Paint TEXT_GREEN_PAINT_8 = new Paint();
     public final static int C_TEXT_GREEN = 0xff05aa3b;
 
     /**
@@ -71,6 +74,7 @@ public class PaintUtils {
      */
     public static Paint LINE_YELLOW_PAINT = new Paint();
     public static Paint TEXT_YELLOW_PAINT = new Paint();
+
     public final static int C_LINE_DEA = 0XFFFFA100;
 
     /**
@@ -117,7 +121,20 @@ public class PaintUtils {
     public static Paint WHITE_PAINT = new Paint();
     public final static int COLOR_WHITE = 0xFFFFFFFF;
 
+
+    /**
+     * 虚线
+     */
+    public static Paint DOT_LINE_PAINT = new Paint();
+
+
     static {
+
+        DOT_LINE_PAINT.setColor(COLOR_BLACK);
+        DOT_LINE_PAINT.setStyle(Paint.Style.STROKE);
+        DOT_LINE_PAINT.setStrokeWidth(2.5f);
+        DOT_LINE_PAINT.setAntiAlias(true);
+        DOT_LINE_PAINT.setPathEffect(new DashPathEffect(new float[]{10f, 10f}, 0f)); // 设置虚线样式
 
         BLUE_RECTF_PAINT.setColor(COLOR_BLUE_RECTF);
         BLUE_RECTF_PAINT.setStyle(Paint.Style.FILL);
@@ -172,10 +189,14 @@ public class PaintUtils {
         TEXT_POP_PAINT.setAntiAlias(true);
 
         TEXT_RED_PAINT.setColor(C_TEXT_RED);
+        TEXT_RED_PAINT_8.setColor(C_TEXT_RED);
         TEXT_RED_PAINT.setAntiAlias(true);
+        TEXT_RED_PAINT_8.setAntiAlias(true);
 
         TEXT_GREEN_PAINT.setColor(C_TEXT_GREEN);
+        TEXT_GREEN_PAINT_8.setColor(C_TEXT_GREEN);
         TEXT_GREEN_PAINT.setAntiAlias(true);
+        TEXT_GREEN_PAINT_8.setAntiAlias(true);
 
         LINE_YELLOW_PAINT.setStyle(Paint.Style.STROKE);
         LINE_YELLOW_PAINT.setStrokeWidth(2.5f);
@@ -216,6 +237,8 @@ public class PaintUtils {
         TEXT_BLUE_PAINT.setTextSize(TEXT_SIZE_SP);
         TEXT_PURPLE_PAINT.setTextSize(TEXT_SIZE_SP);
         WHITE_PAINT.setTextSize(TEXT_SIZE_SP);
+        TEXT_RED_PAINT_8.setTextSize(TEXT_SIZE_SP);
+        TEXT_GREEN_PAINT_8.setTextSize(TEXT_SIZE_SP);
 
         float textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12,
                 context.getResources().getDisplayMetrics());

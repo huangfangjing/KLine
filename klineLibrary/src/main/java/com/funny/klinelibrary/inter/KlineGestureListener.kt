@@ -26,8 +26,8 @@ interface KlineGestureListener {
     fun onChartScale(me: MotionEvent?, scaleX: Float, scaleY: Float)
 
     /**
-     * 当在图表上执行长按的时候调用
+     * 当在图表上选中的时候调用
      * @param drawItem 选中的位置
      */
-    fun onLongPress(drawItem: KLineDrawItem)
+    fun onFocusData(drawItem: KLineDrawItem)
 }
