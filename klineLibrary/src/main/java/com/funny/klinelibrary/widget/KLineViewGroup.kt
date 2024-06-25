@@ -172,9 +172,6 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
 
                     STATE_SHOW_MINTUNE -> {
 
-                        val mostNearX = getMostNearX(event.x)
-                        mFocusPoint = PointF(mostNearX, event.y)
-                        mFocusIndex = getFocusIndex(mostNearX)
                         val klineView = getKLineView()
                         val focusDrawItem = klineView.getFocusDrawItem()
                         openMintuneValue(focusDrawItem)

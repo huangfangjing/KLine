@@ -2,6 +2,7 @@ package com.funny.klinelibrary.entity
 
 import com.funny.klinelibrary.utils.NumFormatUtils
 import java.io.Serializable
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -41,14 +42,22 @@ class MinuteData(
 ) : Serializable {
 
     /**
-     * 当天涨停价
+     * 当天最大涨幅或跌幅
      */
-    var heighLimit: Float = preClosePrice * 1.1f
+    var maxAmplitude: Float = max(
+        abs((maxPrice - preClosePrice) / preClosePrice),
+        abs((minPrice - preClosePrice) / preClosePrice)
+    )
 
     /**
-     * 当天涨停价
+     * 当天上涨上限
      */
-    var lowLimit: Float = preClosePrice * 0.9f
+    var heighLimit: Float = preClosePrice * (1.0f + maxAmplitude)
+
+    /**
+     * 当天下跌下限
+     */
+    var lowLimit: Float = preClosePrice * (1.0f - maxAmplitude)
 
     /**
      * 分时价格集合
@@ -79,6 +88,7 @@ class MinuteData(
      * 当天是否是跌
      */
     var isFall: Boolean = (closePrice < preClosePrice)
+
 
     /**
      * 设置分时图随机数
