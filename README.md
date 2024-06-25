@@ -3,6 +3,8 @@
 
 
 <img src="https://github.com/huangfangjing/KLine/blob/master/show1.jpg" width="400px">      <img src="https://github.com/huangfangjing/KLine/blob/master/show2.jpg" width="400px">    
+<img src="https://github.com/huangfangjing/KLine/blob/master/show3.jpg" width="400px">      <img src="https://github.com/huangfangjing/KLine/blob/master/kline.gif" width="390px">
+
 
 
 
@@ -16,7 +18,7 @@
 2.使用GestureDetector实现用户手势检测,项目使用到的手势分别为点击(onSingleTapUp),长按（onLongPress），滑动（onScroll），长按后滑动（MotionEvent.ACTION_MASK）
   缩放（MotionEvent.ACTION_MASK 判断event.pointerCount == 2）
   
-3.onTouch事件传递，本项目包含三个自定义的View，KLineViewGroup（父布局），KLineView（子View，K线图），VolumeView（子View，成交量图）
+3.onTouch事件传递，本项目包含三个自定义的View，KLineViewGroup（父布局），KLineView（子View，K线图），VolumeView（子View，成交量图），MinuteLineView(子View，分时图)
   项目使用了最简单的方式，集中在父View监听onTouch事件，然后根据需要传递到子View并交给子类具体实现。
   
 4.K线数据的指标计算和绘制位置计算（这个不是项目的技术关键，虽然有些算起来头大）
@@ -25,7 +27,24 @@
 
 6.DataBinding数据绑定
 
-7.未完，待续。后续继续增加分时图和其他指标
+7.用户交互，所有的交互方式均与同花顺APP一样
+
+  交互如下
+  
+  v1：用户点击K线后，绘制十字线焦点。若五秒后无其他操作，自动释放焦点，若期间再次点击，则立即取消焦点
+
+  v2：用户滑动K线，实时刷新K线数据
+
+  v3：用户长按或长按后滑动K线，实时绘制选中K线涨跌情况
+
+  v4：用户点击选中K线后，点击分时图区域，弹出股票分时走势图（包含价格走势和成交量走势）
+
+  v5：分时图模式下，选中当前分时图对应的K仙线（绘制虚线表示）
+
+  v6：分时图模式下滑动，手抬起时绘制抬起时对应的K线走势图
+
+  v7：关闭分时图，K线重置
+
 
 部分实现代码
 
@@ -42,34 +61,30 @@ private val onReadyListener: IChartDataCountListener<MutableList<KLineDrawItem>>
             mBinding.kLineData = data[data.size - 1] //DataBinding数据绑定
         }
 
- //根据自己需要定义回调接口
 
-//手势滑动
-
-override fun onChartTranslate(me: MotionEvent?, dX: Float) {
+  //手势滑动
+  
+    override fun onChartTranslate(me: MotionEvent?, dX: Float) {
 
         mHelper.initKLineDrawData(dX, KLineSourceHelper.SourceType.MOVE)
         
         }
 
  //手势缩放   
- 
-override fun onChartScale(me: MotionEvent?, scaleX: Float, scaleY: Float) {
 
-        KLineSourceHelper.K_D_COLUMNS = (KLineSourceHelper.K_D_COLUMNS / scaleX).toInt()
-        KLineSourceHelper.K_D_COLUMNS =
-            max(
-                KLineSourceHelper.MIN_COLUMNS,
-                min(KLineSourceHelper.MAX_COLUMNS, KLineSourceHelper.K_D_COLUMNS)
-            )
-        mHelper.initKLineDrawData(0f, KLineSourceHelper.SourceType.SCALE)
+ 
+override fun onChartTranslate(dX: Float) {
+
+        mHelper.initKLineDrawData(dX, KLineDataHelper.SourceType.MOVE)
         
     }
 
+
 //长按
+
 
 override fun onLongPress(drawItem: KLineDrawItem) {
 
         mBinding.kLineData = drawItem
-        
+
     }
