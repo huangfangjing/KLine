@@ -149,7 +149,10 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
                     KLineDataHelper.K_D_COLUMNS =
                         max(
                             KLineDataHelper.MIN_COLUMNS,
-                            min(KLineDataHelper.MAX_COLUMNS, (KLineDataHelper.K_D_COLUMNS / scaleX).toInt())
+                            min(
+                                KLineDataHelper.MAX_COLUMNS,
+                                (KLineDataHelper.K_D_COLUMNS / scaleX).toInt()
+                            )
                         )
                     mKLineActionListener?.onChartScale()
                 }
@@ -186,10 +189,6 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
 
-            val mostNearX = getMostNearX(e.x)
-            mFocusPoint = PointF(mostNearX, e.y)
-            mFocusIndex = getFocusIndex(mostNearX)
-
             val klineView = getKLineView()
 
             when (CHART_STATE) {
@@ -198,15 +197,18 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
                 STATE_SINGLE_CLICK -> {
 
                     //判断点击打开分时图
-                    if (mostNearX > klineView.mDateRectF.left && mostNearX < klineView.mDateRectF.right &&
+                    if (e.x > klineView.mDateRectF.left && e.x < klineView.mDateRectF.right &&
                         abs(e.y - klineView.mDateRectF.centerY()) < 60 && CHART_STATE != STATE_SHOW_MINTUNE
                     ) {
 
                         //开启分时图
                         CHART_STATE = STATE_SHOW_MINTUNE
                         dispatchDrawData(false)
+                        mHandler.removeCallbacks(mRunnable)
                         return super.onSingleTapUp(e)
                     }
+
+                    resetFocus(e.x, e.y)
 
                     //关闭所有状态
                     CHART_STATE = STATE_DEFAULT
@@ -216,6 +218,8 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
 
                 //分时图开启状态时点击
                 STATE_SHOW_MINTUNE -> {
+
+                    resetFocus(e.x, e.y)
 
                     val minuteLineView = getMinuteLineView()
 
@@ -239,9 +243,10 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
 
                 else -> {
                     //默认状态
+                    resetFocus(e.x, e.y)
                     CHART_STATE = STATE_SINGLE_CLICK
                     dispatchDrawData(false)
-                    mHandler.postDelayed(mRunnable, 4000)//四秒无操作后自动关闭选中状态
+                    mHandler.postDelayed(mRunnable, 5000)//5秒无操作后自动关闭选中状态
                 }
             }
             return super.onSingleTapUp(e)
@@ -286,6 +291,16 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
         }
 
     }
+
+    /**
+     * 更新选中的位置
+     */
+    private fun resetFocus(x: Float, y: Float) {
+        val mostNearX = getMostNearX(x)
+        mFocusPoint = PointF(mostNearX, y)
+        mFocusIndex = getFocusIndex(mostNearX)
+    }
+
 
     /**
      * 开启分时图
