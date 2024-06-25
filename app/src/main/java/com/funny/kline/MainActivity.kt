@@ -75,17 +75,12 @@ class MainActivity : AppCompatActivity(), KlineGestureListener {
             mBinding.klineGroup.dispatchDrawData()
         }
 
-    override fun onChartTranslate(me: MotionEvent?, dX: Float) {
+    override fun onChartTranslate(dX: Float) {
         mHelper.initKLineDrawData(dX, KLineDataHelper.SourceType.MOVE)
     }
 
-    override fun onChartScale(me: MotionEvent?, scaleX: Float, scaleY: Float) {
-        KLineDataHelper.K_D_COLUMNS = (KLineDataHelper.K_D_COLUMNS / scaleX).toInt()
-        KLineDataHelper.K_D_COLUMNS =
-            max(
-                KLineDataHelper.MIN_COLUMNS,
-                min(KLineDataHelper.MAX_COLUMNS, KLineDataHelper.K_D_COLUMNS)
-            )
+    override fun onChartScale() {
+
         mHelper.initKLineDrawData(0f, KLineDataHelper.SourceType.SCALE)
     }
 

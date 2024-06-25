@@ -15,15 +15,13 @@ interface KlineGestureListener {
      *
      * @param dX x轴移动距离
      */
-    fun onChartTranslate(me: MotionEvent?, dX: Float)
+    fun onChartTranslate(dX: Float)
 
     /**
      * 当在图表上执行缩放的时候调用
      *
-     * @param scaleX x轴缩放系数
-     * @param scaleY y轴缩放系数
      */
-    fun onChartScale(me: MotionEvent?, scaleX: Float, scaleY: Float)
+    fun onChartScale()
 
     /**
      * 当在图表上选中的时候调用

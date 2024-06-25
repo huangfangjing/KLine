@@ -145,7 +145,13 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
                 if (event.pointerCount == 2) {
                     val xDist = abs((event.getX(0) - event.getX(1)))
                     val scaleX = xDist / mStartXDist
-                    mKLineActionListener?.onChartScale(event, scaleX, 1f)
+
+                    KLineDataHelper.K_D_COLUMNS =
+                        max(
+                            KLineDataHelper.MIN_COLUMNS,
+                            min(KLineDataHelper.MAX_COLUMNS, (KLineDataHelper.K_D_COLUMNS / scaleX).toInt())
+                        )
+                    mKLineActionListener?.onChartScale()
                 }
             }
 
@@ -274,7 +280,7 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
                 KLineDataHelper.COLUMNS_DEFAULT * 1.0f / KLineDataHelper.K_D_COLUMNS
             )
             scrollX -= (distanceX * scoreRate)
-            mKLineActionListener?.onChartTranslate(e2, scrollX)
+            mKLineActionListener?.onChartTranslate(scrollX)
             scrollX = 0f
             return true
         }

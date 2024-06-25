@@ -172,7 +172,7 @@ class MinuteLineView(
                 mVolumeRectF.top + (1 - minuteData.volumes[i] / 100f) * mVolumeRectF.height(),//分时量最大假设是10
                 mRectF.left + (0.875f + i) * evenWidth,
                 mVolumeRectF.bottom,
-                if (Random.nextBoolean()) PaintUtils.KLINE_PAINT_RED else PaintUtils.KLINE_PAINT_GREEN
+                if (minuteData.randomBooleans[i]) PaintUtils.KLINE_PAINT_RED else PaintUtils.KLINE_PAINT_GREEN
             )
         }
     }

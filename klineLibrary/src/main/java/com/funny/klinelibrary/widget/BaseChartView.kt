@@ -108,7 +108,7 @@ open class BaseChartView(context: Context?, attrs: AttributeSet?) : View(context
      * 选中的index
      */
     fun getFocusIndex(): Int {
-        return getViewGroup().mFocusIndex
+        return max(0, min(getViewGroup().mFocusIndex, getKLineDatas().size - 1))
     }
 
     /**

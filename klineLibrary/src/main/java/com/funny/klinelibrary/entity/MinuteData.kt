@@ -60,24 +60,25 @@ class MinuteData(
      */
     var volumes: MutableList<Int> = setRandomVolumes()
 
-
     /**
      * 分时均价集合
      */
     var averagePrice: MutableList<Float> = setAveragePrices()
 
+    /**
+     * 分时涨跌
+     */
+    var randomBooleans: MutableList<Boolean> = setRandomBooleans()
 
     /**
      * 是否一字板
      */
     var isOneLine: Boolean = false
 
-
     /**
      * 当天是否是跌
      */
     var isFall: Boolean = (closePrice < preClosePrice)
-
 
     /**
      * 设置分时图随机数
@@ -111,6 +112,10 @@ class MinuteData(
         return pricesData
     }
 
+
+    /**
+     * 设置分时图均价
+     */
     private fun setAveragePrices(): MutableList<Float> {
 
         val averagePrice: MutableList<Float> = mutableListOf()
@@ -122,7 +127,9 @@ class MinuteData(
         return averagePrice
     }
 
-    //虚拟数据，最大是100
+    /**
+     * 设置分时量，最大100
+     */
     private fun setRandomVolumes(): MutableList<Int> {
 
         val random = Random(System.currentTimeMillis())
@@ -141,7 +148,19 @@ class MinuteData(
         (0..108).forEach { _ ->
             volumes.add(random.nextInt(1, 50))
         }
-        volumes.add(85)
+        volumes.add(75)
         return volumes
+    }
+
+
+    /**
+     * 设置分时随机涨跌
+     */
+    private fun setRandomBooleans(): MutableList<Boolean> {
+        val booleans: MutableList<Boolean> = mutableListOf()
+        (0..119).forEach { _ ->
+            booleans.add(Random.nextBoolean())
+        }
+        return booleans
     }
 }
