@@ -6,7 +6,6 @@ import android.graphics.RectF
 import android.os.Handler
 import android.os.Looper
 import android.util.AttributeSet
-import android.util.Log
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
@@ -14,7 +13,7 @@ import android.widget.LinearLayout
 import com.funny.klinelibrary.entity.ExtremeValue
 import com.funny.klinelibrary.entity.KLineDrawItem
 import com.funny.klinelibrary.entity.MinuteData
-import com.funny.klinelibrary.helper.KLineSourceHelper
+import com.funny.klinelibrary.helper.KLineDataHelper
 import com.funny.klinelibrary.inter.KlineGestureListener
 import com.funny.klinelibrary.utils.DateUtils
 import com.funny.klinelibrary.utils.DisplayUtils
@@ -272,7 +271,7 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
         ): Boolean {
             val scoreRate = max(
                 1.0f,
-                KLineSourceHelper.COLUMNS_DEFAULT * 1.0f / KLineSourceHelper.K_D_COLUMNS
+                KLineDataHelper.COLUMNS_DEFAULT * 1.0f / KLineDataHelper.K_D_COLUMNS
             )
             scrollX -= (distanceX * scoreRate)
             mKLineActionListener?.onChartTranslate(e2, scrollX)

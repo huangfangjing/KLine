@@ -3,7 +3,6 @@ package com.funny.kline
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.Window
@@ -13,19 +12,18 @@ import androidx.databinding.DataBindingUtil
 import com.funny.kline.databinding.ActivityMainBinding
 import com.funny.klinelibrary.entity.KLineDrawItem
 import com.funny.klinelibrary.helper.KLineParser
-import com.funny.klinelibrary.helper.KLineSourceHelper
+import com.funny.klinelibrary.helper.KLineDataHelper
 import com.funny.klinelibrary.inter.IChartDataCountListener
 import com.funny.klinelibrary.inter.KlineGestureListener
 import com.funny.klinelibrary.utils.LocalUtils
 import com.funny.klinelibrary.utils.PaintUtils
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.random.Random
 
 
 class MainActivity : AppCompatActivity(), KlineGestureListener {
 
-    private lateinit var mHelper: KLineSourceHelper
+    private lateinit var mHelper: KLineDataHelper
 
     private lateinit var mBinding: ActivityMainBinding
 
@@ -38,7 +36,7 @@ class MainActivity : AppCompatActivity(), KlineGestureListener {
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         PaintUtils.init(this)
-        mHelper = KLineSourceHelper(onReadyListener)
+        mHelper = KLineDataHelper(onReadyListener)
 
         with(mBinding.klineGroup) {
             setKLineActionListener(this@MainActivity)
@@ -78,17 +76,17 @@ class MainActivity : AppCompatActivity(), KlineGestureListener {
         }
 
     override fun onChartTranslate(me: MotionEvent?, dX: Float) {
-        mHelper.initKLineDrawData(dX, KLineSourceHelper.SourceType.MOVE)
+        mHelper.initKLineDrawData(dX, KLineDataHelper.SourceType.MOVE)
     }
 
     override fun onChartScale(me: MotionEvent?, scaleX: Float, scaleY: Float) {
-        KLineSourceHelper.K_D_COLUMNS = (KLineSourceHelper.K_D_COLUMNS / scaleX).toInt()
-        KLineSourceHelper.K_D_COLUMNS =
+        KLineDataHelper.K_D_COLUMNS = (KLineDataHelper.K_D_COLUMNS / scaleX).toInt()
+        KLineDataHelper.K_D_COLUMNS =
             max(
-                KLineSourceHelper.MIN_COLUMNS,
-                min(KLineSourceHelper.MAX_COLUMNS, KLineSourceHelper.K_D_COLUMNS)
+                KLineDataHelper.MIN_COLUMNS,
+                min(KLineDataHelper.MAX_COLUMNS, KLineDataHelper.K_D_COLUMNS)
             )
-        mHelper.initKLineDrawData(0f, KLineSourceHelper.SourceType.SCALE)
+        mHelper.initKLineDrawData(0f, KLineDataHelper.SourceType.SCALE)
     }
 
     override fun onFocusData(drawItem: KLineDrawItem) {

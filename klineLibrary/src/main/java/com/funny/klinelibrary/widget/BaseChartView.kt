@@ -9,15 +9,10 @@ import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
-import com.funny.klinelibrary.R
 import com.funny.klinelibrary.entity.ExtremeValue
 import com.funny.klinelibrary.entity.KLineDrawItem
-import com.funny.klinelibrary.helper.KLineSourceHelper
-import com.funny.klinelibrary.utils.DateUtils
 import com.funny.klinelibrary.utils.DisplayUtils
-import com.funny.klinelibrary.utils.NumFormatUtils
 import com.funny.klinelibrary.utils.PaintUtils
 import kotlin.math.max
 import kotlin.math.min

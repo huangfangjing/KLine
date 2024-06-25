@@ -6,13 +6,9 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import com.funny.klinelibrary.entity.ExtremeValue
-import com.funny.klinelibrary.entity.KLineDrawItem
-import com.funny.klinelibrary.helper.KLineSourceHelper
 import com.funny.klinelibrary.utils.DisplayUtils
 import com.funny.klinelibrary.utils.NumFormatUtils
 import com.funny.klinelibrary.utils.PaintUtils
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * 成交量附图

@@ -12,7 +12,7 @@ import com.funny.klinelibrary.widget.VolumeView
 import kotlin.math.abs
 import kotlin.math.max
 
-class KLineSourceHelper(private var mReadyListener: IChartDataCountListener<MutableList<KLineDrawItem>>) {
+class KLineDataHelper(private var mReadyListener: IChartDataCountListener<MutableList<KLineDrawItem>>) {
 
 
     companion object {
