@@ -107,7 +107,7 @@ class MinuteData(
             }
 
             else -> {
-                val amplitude = preClosePrice //波动幅度 1%
+                val amplitude = preClosePrice / 2 //设定每分钟波动幅度 0.5%内
                 pricesData.add(0, closePrice)
                 (1..118).forEach { _ ->
                     val data = random.nextInt(-amplitude.toInt(), amplitude.toInt()) / 100f
