@@ -285,8 +285,8 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
             scrollX = 0f
             if (CHART_STATE == STATE_SINGLE_CLICK) {
                 mHandler.removeCallbacks(mRunnable)
+                CHART_STATE = STATE_DEFAULT
             }
-            CHART_STATE = STATE_DEFAULT
             return true
         }
 
