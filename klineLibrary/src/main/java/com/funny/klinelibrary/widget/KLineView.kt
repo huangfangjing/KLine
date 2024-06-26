@@ -66,7 +66,7 @@ class KLineView(context: Context?, attrs: AttributeSet?) : BaseChartView(context
                     }
                 }
                 drawArrow(i, drawItem)//绘制最高价最低价箭头
-                drawBuySalePoint(i, drawItem)//绘制买卖点
+                drawBuySalePoint(drawItem)//绘制买卖点
             }
 
             //绘制价格均线
@@ -91,7 +91,7 @@ class KLineView(context: Context?, attrs: AttributeSet?) : BaseChartView(context
     /**
      * 绘制买卖点
      */
-    private fun drawBuySalePoint(i: Int, drawItem: KLineDrawItem) {
+    private fun drawBuySalePoint(drawItem: KLineDrawItem) {
         if (drawItem.isBuy) {
             //绘制在K线下方
             mCanvas.drawLine(
@@ -462,7 +462,7 @@ class KLineView(context: Context?, attrs: AttributeSet?) : BaseChartView(context
             mCanvas,
             popRect,
             getString(R.string.open),
-            java.lang.String.valueOf(item.open),
+            NumFormatUtils.formatFloatZero(item.open),
             item.compare(item.open),
             perHeight
         )
@@ -470,7 +470,7 @@ class KLineView(context: Context?, attrs: AttributeSet?) : BaseChartView(context
             mCanvas,
             popRect,
             getString(R.string.hign),
-            java.lang.String.valueOf(item.high),
+            NumFormatUtils.formatFloatZero(item.high),
             item.compare(item.high),
             perHeight * 2
         )
@@ -478,7 +478,7 @@ class KLineView(context: Context?, attrs: AttributeSet?) : BaseChartView(context
             mCanvas,
             popRect,
             getString(R.string.low),
-            java.lang.String.valueOf(item.low),
+            NumFormatUtils.formatFloatZero(item.low),
             item.compare(item.low),
             perHeight * 3
         )
@@ -486,7 +486,7 @@ class KLineView(context: Context?, attrs: AttributeSet?) : BaseChartView(context
             mCanvas,
             popRect,
             getString(R.string.close),
-            java.lang.String.valueOf(item.close),
+            NumFormatUtils.formatFloatZero(item.close),
             item.isFall,
             perHeight * 4
         )

@@ -31,4 +31,19 @@ data class KLineItem(
      */
     var volume: Long
 
-)
+){
+    /**
+     * 近5天平均价格
+     */
+    var average5: Float = 0f
+
+    /**
+     * 近10天平均价格
+     */
+    var average10: Float = 0f
+
+    /**
+     * 近30天平均价格
+     */
+    var average30: Float = 0f
+}

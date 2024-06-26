@@ -7,6 +7,9 @@
             name="kLineData"
             type="com.funny.klinelibrary.entity.KLineDrawItem" />
 
+        <import
+            type="com.funny.klinelibrary.utils.NumFormatUtils" />
+
     </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -46,7 +49,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@{String.valueOf(kLineData.close)}"
+                        android:text="@{NumFormatUtils.formatFloatZero(kLineData.close)}"
                         android:textColor="@{kLineData.isFall?@color/green:@color/red}"
                         android:textSize="25sp"
                         android:textStyle="bold" />
@@ -103,7 +106,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@{String.valueOf(kLineData.high)}"
+                            android:text="@{NumFormatUtils.formatFloatZero(kLineData.high)}"
                             android:textColor="@{kLineData.compare(kLineData.high)?@color/green:@color/red}" />
 
                     </LinearLayout>
@@ -126,7 +129,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@{String.valueOf(kLineData.low)}"
+                            android:text="@{NumFormatUtils.formatFloatZero(kLineData.low)}"
                             android:textColor="@{kLineData.compare(kLineData.low)?@color/green:@color/red}" />
                     </LinearLayout>
 
@@ -148,7 +151,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center"
-                            android:text="@{String.valueOf(kLineData.open)}"
+                            android:text="@{NumFormatUtils.formatFloatZero(kLineData.open)}"
                             android:textColor="@{kLineData.compare(kLineData.open)?@color/green:@color/red}" />
                     </LinearLayout>
 

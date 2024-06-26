@@ -146,10 +146,9 @@ class KLineDataHelper(private var mReadyListener: IChartDataCountListener<Mutabl
             drawItem.volumeRect =
                 getVolumeRect(mVolumeView.mRectF, k, drawItem.volume, extremeValue.mKMaxVolume)
 
-            //计算近5,30,120天平均价格
-            drawItem.average5 = getAveragePrice(i, 5)
-            drawItem.average10 = getAveragePrice(i, 10)
-            drawItem.average30 = getAveragePrice(i, 30)
+            drawItem.average5 = kLineItem.average5
+            drawItem.average10 = kLineItem.average10
+            drawItem.average30 = kLineItem.average30
 
             drawItem.point5 = getPointF(k, drawItem.average5, extremeValue.mKMaxPrice, diffPrice)
             drawItem.point10 = getPointF(k, drawItem.average10, extremeValue.mKMaxPrice, diffPrice)
@@ -168,14 +167,17 @@ class KLineDataHelper(private var mReadyListener: IChartDataCountListener<Mutabl
                 drawItem.riseMaxPrice = NumFormatUtils.formatFloat(drawItem.preClose * 1.1f, 2)
                 drawItem.fallMaxPrice = NumFormatUtils.formatFloat(drawItem.preClose * 0.9f, 2)
                 drawItem.isFall = (drawItem.close < drawItem.preClose) //是否是下跌
-                val rate = NumFormatUtils.formatFloat(
-                    abs((drawItem.close - drawItem.preClose).toDouble()) * 100 / drawItem.preClose,
-                    2
-                )
-                    .toFloat()
+                val rate = NumFormatUtils.formatFloatZero(NumFormatUtils.formatFloat(
+                    abs((drawItem.close - drawItem.preClose).toDouble()) * 100 / drawItem.preClose, 2
+                ))
                 drawItem.increaseRate = (if (drawItem.isFall) "-" else "+") + rate + "%"
                 drawItem.increaseExtra =
-                    NumFormatUtils.formatFloat(drawItem.close - drawItem.preClose, 2).toString()
+                    NumFormatUtils.formatFloatZero(
+                        NumFormatUtils.formatFloat(
+                            drawItem.close - drawItem.preClose,
+                            2
+                        )
+                    )
             }
             drawItem.isNegaline =
                 (drawItem.open > drawItem.close) || (drawItem.close == drawItem.fallMaxPrice) //是否阴线
@@ -291,11 +293,27 @@ class KLineDataHelper(private var mReadyListener: IChartDataCountListener<Mutabl
 
         for (i in startIndex until endIndex) {
             val kLineItem = mKList[i]
+
+            //计算近5,30,120天平均价格
+            kLineItem.average5 = getAveragePrice(i, 5)
+            kLineItem.average10 = getAveragePrice(i, 10)
+            kLineItem.average30 = getAveragePrice(i, 30)
+
             if (kLineItem.high > maxPrice) {
-                maxPrice = kLineItem.high
+                maxPrice = maxOf(
+                    kLineItem.high,
+                    kLineItem.average5,
+                    kLineItem.average10,
+                    kLineItem.average30
+                )
             }
             if (kLineItem.low < minPrice) {
-                minPrice = kLineItem.low
+                minPrice = minOf(
+                    kLineItem.low,
+                    kLineItem.average5,
+                    kLineItem.average10,
+                    kLineItem.average30
+                )
             }
             if (kLineItem.volume > maxVolume) {
                 maxVolume = kLineItem.volume.toFloat()
