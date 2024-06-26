@@ -127,8 +127,32 @@ public class PaintUtils {
      */
     public static Paint DOT_LINE_PAINT = new Paint();
 
+    /**
+     * 买点
+     */
+    public static Paint DOT_LINE_PAINT_BUY = new Paint();
+
+    /**
+     * 卖点
+     */
+    public static Paint DOT_LINE_PAINT_SALE = new Paint();
+
 
     static {
+
+        DOT_LINE_PAINT_BUY.setColor(COLOR_BLACK);
+        DOT_LINE_PAINT_BUY.setStyle(Paint.Style.FILL);
+        DOT_LINE_PAINT_BUY.setStrokeWidth(2.5f);
+        DOT_LINE_PAINT_BUY.setAntiAlias(true);
+        DOT_LINE_PAINT_BUY.setAlpha(100);
+        DOT_LINE_PAINT_BUY.setPathEffect(new DashPathEffect(new float[]{10f, 10f}, 0f)); // 设置虚线样式
+
+        DOT_LINE_PAINT_SALE.setColor(C_LINE_DIF);
+        DOT_LINE_PAINT_SALE.setStyle(Paint.Style.FILL);
+        DOT_LINE_PAINT_SALE.setStrokeWidth(2.5f);
+        DOT_LINE_PAINT_SALE.setAntiAlias(true);
+        DOT_LINE_PAINT_SALE.setAlpha(100);
+        DOT_LINE_PAINT_SALE.setPathEffect(new DashPathEffect(new float[]{10f, 10f}, 0f)); // 设置虚线样式
 
         DOT_LINE_PAINT.setColor(COLOR_BLACK);
         DOT_LINE_PAINT.setStyle(Paint.Style.STROKE);

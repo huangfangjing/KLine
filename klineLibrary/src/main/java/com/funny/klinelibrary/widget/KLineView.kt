@@ -10,6 +10,7 @@ import android.util.AttributeSet
 import com.funny.klinelibrary.R
 import com.funny.klinelibrary.entity.ExtremeValue
 import com.funny.klinelibrary.entity.KLineDrawItem
+import com.funny.klinelibrary.helper.KLineDataHelper
 import com.funny.klinelibrary.utils.DateUtils
 import com.funny.klinelibrary.utils.DisplayUtils
 import com.funny.klinelibrary.utils.NumFormatUtils
@@ -65,6 +66,7 @@ class KLineView(context: Context?, attrs: AttributeSet?) : BaseChartView(context
                     }
                 }
                 drawArrow(i, drawItem)//绘制最高价最低价箭头
+                drawBuySalePoint(i, drawItem)//绘制买卖点
             }
 
             //绘制价格均线
@@ -83,6 +85,63 @@ class KLineView(context: Context?, attrs: AttributeSet?) : BaseChartView(context
             drawExtremeDate()//绘制两边K线日期
             drawCrossLine()//绘制十字线和悬浮框
             invalidate()//刷新
+        }
+    }
+
+    /**
+     * 绘制买卖点
+     */
+    private fun drawBuySalePoint(i: Int, drawItem: KLineDrawItem) {
+        if (drawItem.isBuy) {
+            //绘制在K线下方
+            mCanvas.drawLine(
+                drawItem.shadowRect.centerX(),
+                drawItem.shadowRect.bottom,
+                drawItem.shadowRect.centerX(),
+                drawItem.shadowRect.bottom + DisplayUtils.dip2px(context, 12.0f),
+                PaintUtils.DOT_LINE_PAINT_BUY
+            )
+
+            val rectWidth = mRectF.width() / KLineDataHelper.MIN_COLUMNS * 0.7f
+            val rectf = RectF(
+                drawItem.shadowRect.centerX() - rectWidth / 2,
+                drawItem.shadowRect.bottom + DisplayUtils.dip2px(context, 12.0f),
+                drawItem.shadowRect.centerX() + rectWidth / 2,
+                drawItem.shadowRect.bottom + rectWidth + DisplayUtils.dip2px(context, 12.0f)
+            )
+            mCanvas.drawRect(rectf, PaintUtils.DOT_LINE_PAINT_BUY)
+
+            mCanvas.drawText(
+                "B",
+                drawItem.shadowRect.centerX() - PaintUtils.TEXT_POP_PAINT.measureText("B") / 2,
+                rectf.centerY() + DisplayUtils.dip2px(context, 4.0f),
+                PaintUtils.TEXT_POP_PAINT
+            )
+        }
+        if (drawItem.isSale) {
+            //绘制在K线上方
+            mCanvas.drawLine(
+                drawItem.shadowRect.centerX(),
+                drawItem.shadowRect.top - DisplayUtils.dip2px(context, 12.0f),
+                drawItem.shadowRect.centerX(),
+                drawItem.shadowRect.bottom,
+                PaintUtils.DOT_LINE_PAINT_SALE
+            )
+            val rectWidth = mRectF.width() / KLineDataHelper.MIN_COLUMNS * 0.7f
+            val rectf = RectF(
+                drawItem.shadowRect.centerX() - rectWidth / 2,
+                drawItem.shadowRect.top - DisplayUtils.dip2px(context, 12.0f) - rectWidth,
+                drawItem.shadowRect.centerX() + rectWidth / 2,
+                drawItem.shadowRect.top - DisplayUtils.dip2px(context, 12.0f)
+            )
+            mCanvas.drawRect(rectf, PaintUtils.DOT_LINE_PAINT_SALE)
+
+            mCanvas.drawText(
+                "S",
+                drawItem.shadowRect.centerX() - PaintUtils.TEXT_POP_PAINT.measureText("S") / 2,
+                rectf.centerY() + DisplayUtils.dip2px(context, 4.0f),
+                PaintUtils.TEXT_POP_PAINT
+            )
         }
     }
 

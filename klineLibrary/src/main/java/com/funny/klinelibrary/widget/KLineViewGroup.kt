@@ -58,7 +58,6 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
             dispatchDrawData()
             mKLineActionListener?.onFocusData(getLastDrawItem())
         }
-
     }
 
     companion object {

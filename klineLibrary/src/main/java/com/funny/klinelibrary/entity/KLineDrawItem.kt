@@ -2,6 +2,7 @@ package com.funny.klinelibrary.entity
 
 import android.graphics.PointF
 import android.graphics.RectF
+import com.funny.klinelibrary.utils.DateUtils
 import java.io.Serializable
 
 class KLineDrawItem : Serializable {
@@ -115,6 +116,16 @@ class KLineDrawItem : Serializable {
      * 成交额
      */
     lateinit var volumeExtra: String
+
+    /**
+     * 当天是否有买入
+     */
+    var isBuy: Boolean = false
+
+    /**
+     * 当天是否有卖出
+     */
+    var isSale: Boolean = false
 
     /**
      * 总股本

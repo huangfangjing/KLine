@@ -6,6 +6,7 @@ import com.funny.klinelibrary.entity.ExtremeValue
 import com.funny.klinelibrary.entity.KLineDrawItem
 import com.funny.klinelibrary.entity.KLineItem
 import com.funny.klinelibrary.inter.IChartDataCountListener
+import com.funny.klinelibrary.utils.DateUtils
 import com.funny.klinelibrary.utils.NumFormatUtils
 import com.funny.klinelibrary.widget.KLineView
 import com.funny.klinelibrary.widget.VolumeView
@@ -40,7 +41,6 @@ class KLineDataHelper(private var mReadyListener: IChartDataCountListener<Mutabl
          * 给极值增加一定放大倍数比例，防止绘制到最高最低点
          */
         const val EXTREME_SCALE: Float = 0.04f
-
 
     }
 
@@ -136,6 +136,8 @@ class KLineDataHelper(private var mReadyListener: IChartDataCountListener<Mutabl
             drawItem.low = low
             drawItem.volume = kLineItem.volume
             drawItem.day = kLineItem.day
+            drawItem.isBuy = (DateUtils.getYMD(drawItem.day) == "2019-12-30")//设置虚拟买入点
+            drawItem.isSale = (DateUtils.getYMD(drawItem.day) == "2020-01-23")//设置虚拟买入点
 
             // 计算蜡烛线
             val openYRate = (extremeValue.mKMaxPrice - open) / diffPrice
