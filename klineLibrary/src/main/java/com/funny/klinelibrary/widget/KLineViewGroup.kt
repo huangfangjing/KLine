@@ -34,9 +34,12 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
 
     //移动
     private var scrollX = 0f //x方向移动的距离
+    private var mCurScaleTime: Long = 0//记录当前缩放时间。间隔50毫秒缩放一次
+    private val mScaleInterval = 50
 
     //缩放
     private var mStartXDist = 0f //两指按下时x方向的距离
+    private var mStartYDist = 0f //两指按下时x方向的距离
 
     //长按
     var mFocusPoint: PointF = PointF() //长按时十字线的交叉点
@@ -142,8 +145,19 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
                 }
 
                 if (event.pointerCount == 2) {
+
+                    if (System.currentTimeMillis() - mCurScaleTime < mScaleInterval) {
+                        return true
+                    }
+                    mCurScaleTime = System.currentTimeMillis()
+
                     val xDist = abs((event.getX(0) - event.getX(1)))
-                    val scaleX = xDist / mStartXDist
+                    val yDist = abs((event.getY(0) - event.getY(1)))
+
+                    val scaleX = when (abs(xDist) > abs(yDist)) {
+                        true -> xDist / mStartXDist
+                        else -> yDist / mStartYDist
+                    }
 
                     KLineDataHelper.K_D_COLUMNS =
                         max(
@@ -159,6 +173,7 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
 
             MotionEvent.ACTION_POINTER_DOWN -> if (event.pointerCount == 2) {
                 mStartXDist = abs((event.getX(0) - event.getX(1)))
+                mStartYDist = abs((event.getY(0) - event.getY(1)))
             }
 
             MotionEvent.ACTION_UP -> {
@@ -276,6 +291,7 @@ class KLineViewGroup(context: Context?, attrs: AttributeSet?) : LinearLayout(con
             distanceX: Float,
             distanceY: Float
         ): Boolean {
+
             val scoreRate = max(
                 1.0f,
                 KLineDataHelper.COLUMNS_DEFAULT * 1.0f / KLineDataHelper.K_D_COLUMNS
